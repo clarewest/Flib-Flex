@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
                 if(rmsd <= rmsd_threshold)
                 {
                         fprintf(out,"%s\t%c\t%3d\t%3d\t%s\t%c\t%3d\t%3d\t%3d\t%3d\t%.2lf\t%d\t%.2f\t%.2f\n",Header,Chain,start1,length,ALN_Seq,type,match_score,seq_score,length,start2,resolution,ss_score,torsion,rmsd);
-                }else if(total < 50)
+                }else if(total < 20)
                 {
 		        fprintf(out,"%s\t%c\t%3d\t%3d\t%s\t%c\t%3d\t%3d\t%3d\t%3d\t%.2lf\t%d\t%.2f\t%.2f\n",Header,Chain,start1,length,ALN_Seq,type,match_score,seq_score,length,start2,resolution,ss_score,torsion,rmsd);
                 }

@@ -117,11 +117,12 @@ int main(int argc, char *argv[])
       assert(fscanf(library_b,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
 
 
-      if(rmsd <= rmsd_threshold)
+      if(rmsd <= rmsd_threshold && rmsd != -1)
       {
         fprintf(out,"%s\t%c\t%3d\t%3d\t%s\t%c\t%3d\t%3d\t%3d\t%3d\t%.2lf\t%d\t%.2f\t%.2f\n",Header,Chain,start1,length,ALN_Seq,type,match_score,seq_score,length,start2,resolution,ss_score,torsion,rmsd);
       }else if(total < 20)
       {
+        // here we need to read from the top of this position in library b //
         fprintf(out,"%s\t%c\t%3d\t%3d\t%s\t%c\t%3d\t%3d\t%3d\t%3d\t%.2lf\t%d\t%.2f\t%.2f\n",Header,Chain,start1,length,ALN_Seq,type,match_score,seq_score,length,start2,resolution,ss_score,torsion,rmsd);
       }
 
