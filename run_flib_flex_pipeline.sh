@@ -251,9 +251,8 @@ if  [ "$disable_flex" = false ] ; then
   #       sort -k 10,10n -k 13,13n  $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_b                  # Sort by predicted torsion angle score
   #       sort -k 10,10n -k 14,14n -k 13,13n $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_c    # Sort by rmsd and predicted torsion angle score     
   #       $FLIB/bin/filter_flex2_lib2 $OUTPUT $OUTPUT.lib3000_rmsd $FLEX $segment		            # Filters out fragments above RMSD threshold and/or sorts by torsion angle score
-  #       sed 's/.....$//' $OUTPUT.lib3000_flex$FLEX > $OUTPUT.lib3000		# For now, remove RMSD column and rename in to continue using original scripts
   echo "Processing lib3000"
-  python $FLIB/scripts/process_validated.py $OUTPUT.lib3000
+  python $FLIB/scripts/process_validated.py $OUTPUT.lib3000                                     # Combine RMSD and torsion angle into single column
   mv $OUTPUT.lib3000_proc $OUTPUT.lib3000
   sort -k 10,10n -k 13,13n $OUTPUT.lib3000 > $OUTPUT.tmp 
   mv $OUTPUT.tmp $OUTPUT.lib3000
