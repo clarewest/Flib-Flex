@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #set -u
-#set -e
+set -e
 
 # SET UP THE PATHS FOR REQUIRED DEPENDENCIES:
 export PSIPRED=/data/icarus/west/psipred/

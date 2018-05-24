@@ -248,9 +248,9 @@ if  [ "$disable_flex" = false ] ; then
 
   echo "Processing lib3000"
   ###### lib3000 has been generated and validated to lib3000_rmsd #####
-  sort -k 10,10n -k 14,14nr $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_a                  # Sort by rmsd (descending) (for known regions)
+  sort -k 10,10n -k 14,14nr $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_a                  # Sort by rmsd (descending) (for identifying overlapping regions)
   sort -k 10,10n -k 13,13n  $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_b                  # Sort by predicted torsion angle score (for missing regions)
-  sort -k 10,10n -k 14,14n -k 13,13n $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_c         # Sort by rmsd and predicted torsion angle score (for overlapping regions)    
+  sort -k 10,10n -k 14,14n -k 13,13n $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_c         # Sort by rmsd and predicted torsion angle score     
   $FLIB/bin/filter_flex2_lib2 $OUTPUT $OUTPUT.lib3000_rmsd $FLEX        		               # Filters out fragments above RMSD threshold and/or orders by preference
   python $FLIB/scripts/process_validated.py $OUTPUT.lib3000_flex$FLEX                      # Combine RMSD and torsion angle into single column
   mv $OUTPUT.lib3000_flex"$FLEX"_proc $OUTPUT.lib3000_flex$FLEX

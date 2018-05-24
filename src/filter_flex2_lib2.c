@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
       assert(fscanf(library_b,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
     }else if(mode == 2 || mode == 3)
     {
-      // Clare maybe needs to change this part
+      // Clare maybe could change this part
       //if rmsd are not all > -1, then output all with rmsc <= rmsd_threshold, sorted by torsion angle.
       //i.e., output b
       assert(fscanf(library_b,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
