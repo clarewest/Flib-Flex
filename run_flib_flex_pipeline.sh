@@ -246,18 +246,17 @@ if  [ "$disable_flex" = false ] ; then
   fi
 
 
-  ###### lib3000 has been generated and validated to lib3000_rmsd #####
-  sort -k 10,10n -k 14,14nr $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_a                  # Sort by rmsd (descending) (for known regions)
-  sort -k 10,10n -k 13,13n  $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_b                  # Sort by predicted torsion angle score (for missing regions)
-  sort -k 10,10n -k 14,14n -k 13,13n $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_c         # Sort by rmsd and predicted torsion angle score (for overlapping regions)    
-  $FLIB/bin/filter_flex2_lib2 $OUTPUT $OUTPUT.lib3000_rmsd $FLEX $segment		               # Filters out fragments above RMSD threshold and/or orders by preference
   echo "Processing lib3000"
-  python $FLIB/scripts/process_validated.py $OUTPUT.lib3000                                 # Combine RMSD and torsion angle into single column
-  mv $OUTPUT.lib3000_proc $OUTPUT.lib3000
-  mv $OUTPUT.tmp $OUTPUT.lib3000
-  $FLIB/bin/filterlib2 $OUTPUT $OUTPUT.lib3000                             # This will generate LIB20 and LIB500
-  mv $OUTPUT.lib20 $OUTPUT.lib20_ori
-  mv $OUTPUT.lib500 $OUTPUT.lib500_ori
+  ###### lib3000 has been generated and validated to lib3000_rmsd #####
+  sort -k 10,10n -k 14,14nr $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_a                  # Sort by rmsd (descending) (for identifying overlapping regions)
+  sort -k 10,10n -k 13,13n  $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_b                  # Sort by predicted torsion angle score (for missing regions)
+  sort -k 10,10n -k 14,14n -k 13,13n $OUTPUT.lib3000_rmsd > $OUTPUT.lib3000_rmsd_c         # Sort by rmsd and predicted torsion angle score     
+  $FLIB/bin/filter_flex2_lib2 $OUTPUT $OUTPUT.lib3000_rmsd $FLEX        		               # Filters out fragments above RMSD threshold and/or orders by preference
+  python $FLIB/scripts/process_validated.py $OUTPUT.lib3000_flex$FLEX                      # Combine RMSD and torsion angle into single column
+  mv $OUTPUT.lib3000_flex"$FLEX"_proc $OUTPUT.lib3000_flex$FLEX
+  $FLIB/bin/filterlib2 $OUTPUT $OUTPUT.lib3000_flex$FLEX                             # This will generate LIB20 and LIB500
+  mv $OUTPUT.lib20 $OUTPUT.lib20_flex"$FLEX"_ori
+  mv $OUTPUT.lib500 $OUTPUT.lib500_flex"$FLEX"_ori
 
 
 
@@ -270,7 +269,7 @@ if  [ "$disable_flex" = false ] ; then
     rm $OUTPUT.lib_tmp2     
   else
     ### could add ~6.5 fragments without RMSD here ###
-    cp $OUPUT.lib20_ori $OUTPUT.lib_final 
+    cp $OUTPUT.lib20_flex"$FLEX"_ori $OUTPUT.lib_flex"$FLEX"_final 
   fi
 
   ### Parsing fragments from Threading hits: ###

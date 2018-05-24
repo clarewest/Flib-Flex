@@ -66,22 +66,22 @@ int main(int argc, char *argv[])
       old = start2;
       
       //decide which library to output depending on rmsd at the position
-      if(rmsd > -1)
+      if(rmsd > -1)   /* largest RMSD fragment was validated */
       {
         assert(fscanf(library_c,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
-        if(rmsd > -1)
+        if(rmsd > -1)  /* smallest RMSD fragment was validated */
         {
-          mode = 1;
+          mode = 1;    /* known region */
         }else
         {
-          mode = 2;
+          mode = 2;    /* overlapping region */
         }
       }else
       {
         assert(fscanf(library_c,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
-        if(rmsd == -1)
+        if(rmsd == -1) /* no fragments were validated */
         {
-          mode = 3;
+          mode = 3;    /* missing region */
         }else
         {
           fprintf(stderr, "rmsd not sorted correctly in files.\n");
@@ -111,18 +111,17 @@ int main(int argc, char *argv[])
       assert(fscanf(library_b,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
     }else if(mode == 2 || mode == 3)
     {
-
+      // Clare maybe needs to change this part
       //if rmsd are not all > -1, then output all with rmsc <= rmsd_threshold, sorted by torsion angle.
       //i.e., output b
       assert(fscanf(library_b,"%s\t%c\t%d\t%d\t%s\t%c\t%d\t%d\t%d\t%d\t%lf\t%d\t%f\t%f\n",Header,&Chain,&start1,&length,ALN_Seq,&type,&match_score,&seq_score,&length,&start2,&resolution,&ss_score,&torsion,&rmsd));
 
 
-      if(rmsd <= rmsd_threshold && rmsd != -1)
+      if(rmsd <= rmsd_threshold) /* && rmsd != -1) */
       {
         fprintf(out,"%s\t%c\t%3d\t%3d\t%s\t%c\t%3d\t%3d\t%3d\t%3d\t%.2lf\t%d\t%.2f\t%.2f\n",Header,Chain,start1,length,ALN_Seq,type,match_score,seq_score,length,start2,resolution,ss_score,torsion,rmsd);
       }else if(total < 20)
       {
-        // here we need to read from the top of this position in library b //
         fprintf(out,"%s\t%c\t%3d\t%3d\t%s\t%c\t%3d\t%3d\t%3d\t%3d\t%.2lf\t%d\t%.2f\t%.2f\n",Header,Chain,start1,length,ALN_Seq,type,match_score,seq_score,length,start2,resolution,ss_score,torsion,rmsd);
       }
 
