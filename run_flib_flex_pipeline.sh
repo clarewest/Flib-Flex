@@ -312,8 +312,8 @@ fi
 # Parse FLIB library into SAINT2 compliant format.
 if [ "$parse_flib" = true ] ; then
   echo "Parsing Flib File:"
-  python $FLIB/scripts/process_flex_new.py $PDB < $OUTPUT.lib > $OUTPUT.flib 2> $OUTPUT.log
-  mv $OUTPUT.flib $OUTPUT.flib_flex"$FLEX"_seg$SEG.$TERMINUS
+  python $FLIB/scripts/process_flex_new.py $PDB < $OUTPUT.lib > $OUTPUT.vlib 2> $OUTPUT.log
+  mv $OUTPUT.vlib $OUTPUT.vlib_flex"$FLEX"_seg$segment.$terminus
   echo "Done"
   echo "--------------------------------------"
 fi
