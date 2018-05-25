@@ -213,9 +213,9 @@ if [ "$generate_flib" = true ] ; then
 
   if [ "$true_ss" = true ] ; then
     echo "Using real secondary structure from $begin to $end"
-    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.con --true_ss -b $begin -e $end -O $offset -N $CHAIN 2> $OUTPUT.log > $OUTPUT.lib3000
+    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon --true_ss -b $begin -e $end -O $offset -N $CHAIN 2> $OUTPUT.log > $OUTPUT.lib3000
   else
-    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.con 2> $OUTPUT.log > $OUTPUT.lib3000
+    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon 2> $OUTPUT.log > $OUTPUT.lib3000
   fi
 
   echo "lib3000 generated:"    
@@ -313,8 +313,8 @@ fi
 # Parse FLIB library into SAINT2 compliant format.
 if [ "$parse_flib" = true ] ; then
   echo "Parsing Flib File:"
-  python $FLIB/scripts/process_flex_new.py $PDB < $OUTPUT.lib_flex"$FLEX"_seg$segment.$terminus > $OUTPUT.vlib 2> $OUTPUT.log
-  mv $OUTPUT.lib_flex"$flex"_seg$segment.$terminus $OUTPUT.vlib_flex"$FLEX"_seg$segment.$terminus
+  python $FLIB/scripts/process_flex_new.py $PDB < $OUTPUT.$LIB > $OUTPUT.vlib 2> $OUTPUT.log
+  mv $OUTPUT.vlib $OUTPUT.$VLIB
   echo "Done"
   echo "--------------------------------------"
 fi

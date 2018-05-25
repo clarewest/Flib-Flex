@@ -213,9 +213,9 @@ if [ "$generate_flib" = true ] ; then
 
   if [ "$true_ss" = true ] ; then
     echo "Using real secondary structure from $begin to $end"
-    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.con --true_ss -b $begin -e $end -O $offset -N $CHAIN 2> $OUTPUT.log > $OUTPUT.lib3000
+    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon --true_ss -b $begin -e $end -O $offset -N $CHAIN 2> $OUTPUT.log > $OUTPUT.lib3000
   else
-    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.con 2> $OUTPUT.log > $OUTPUT.lib3000
+    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon 2> $OUTPUT.log > $OUTPUT.lib3000
   fi
 
   echo "lib3000 generated:"    
