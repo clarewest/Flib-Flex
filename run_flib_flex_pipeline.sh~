@@ -48,7 +48,7 @@ remove_homologs=false		# removing homologs from frag. libraries.
 flex=false              # special behaviour for flex region
 segment=false         # length for which homologues are allowed 
 terminus=false        # terminus of prediction
-enrich=false
+enrich=false           # Disables FlibEnrich
 
 # CONSUME COMMAND LINE ARGUMENTS
 found_positional=false
@@ -142,6 +142,8 @@ then
 fi
 
 ##### GENERAL SET UP #####
+LIB=lib_flex"$FLEX"_seg$segment.$terminus
+VLIB=vlib_flex"$FLEX"_seg$segment.$terminus
 
 # Generate SS Prediction using PSIPRED
 if [ "$generate_ss" = true ] ; then
@@ -180,28 +182,28 @@ if [ "$remove_homologs" = true ] ; then
   echo "--------------------------------------"
 fi
 
-##### FLIB #####
-if [ "$generate_flib" = true ] ; then
-  echo "Generating FLIB File:"
-  if [ "$disable_flex" = false ] ; then
-    LENGTH=$(tail -n1 $OUTPUT.fasta.txt | tr -d '\n' | wc -c)
-    if [ $terminus = "C" ]; then
-      begin=1
-    end=$segment
-  elif [ $terminus = "N" ]; then
-    begin=$((LENGTH-segment))
+### Setting start and end residues of validator ###
+LENGTH=$(tail -n1 $OUTPUT.fasta.txt | tr -d '\n' | wc -c)
+if [ $terminus = "C" ]; then
+  begin=1
+  end=$segment
+elif [ $terminus = "N" ]; then
+  begin=$((LENGTH-segment))
   end=$LENGTH
 else
   echo "Not a valid terminus"
   exit
 fi
-echo "Using $VALIDATORPDB as validation from $begin to $end"
-    fi
-    if [[ -z $begin ]] ; then
-      begin=1;
-    fi
 
-    if [[ -z $end ]] ; then
+echo "Using $VALIDATORPDB as validation from $begin to $end"
+##### FLIB #####
+echo "Generating FLIB File:"
+if [ "$generate_flib" = true ] ; then
+  if [[ -z $begin ]] ; then
+    begin=1;
+  fi
+
+  if [[ -z $end ]] ; then
     end=$(wc $OUTPUT.fasta.ss | awk '{print $1}');
   fi
 
@@ -220,8 +222,9 @@ echo "Using $VALIDATORPDB as validation from $begin to $end"
 
   sort -k 10,10n -k 13,13n $OUTPUT.lib3000 > $OUTPUT.tmp;                   # Sorts LIB3000
   mv $OUTPUT.tmp $OUTPUT.lib3000;                                           
-  cp $OUTPUT.lib3000 $OUTPUT.lib3000_ori
 fi
+
+cp $OUTPUT.lib3000 $OUTPUT.lib3000_ori
 
 if  [ "$disable_flex" = false ] ; then
 
@@ -278,8 +281,8 @@ if  [ "$disable_flex" = false ] ; then
   $FLIB/bin/parse_hhr $OUTPUT.ordered > $OUTPUT.lib9               # Parses LIB_HHR
   cut -f 1-12 $OUTPUT.lib9 > $OUTPUT.lib9_aux
   mv $OUTPUT.lib9_aux $OUTPUT.lib9
-  awk 'BEGIN {OFS = "\t"} ; {print $0,"0.0"}' $OUTPUT.lib9 > $OUTPUT.9_lib
-  $FLIB/bin/LibValidator validator_$OUTPUT $OUTPUT.9_lib $CHAIN > $OUTPUT.rmsd_9_lib 2>> $OUTPUT.validator_log   # rmsd of fragments against validator pdb
+  awk 'BEGIN {OFS = "\t"} ; {$4=$3+$4; print $0,"0.0"}' $OUTPUT.lib9 > $OUTPUT.rmsd_9_lib
+#  $FLIB/bin/LibValidator validator_$OUTPUT $OUTPUT.9_lib $CHAIN > $OUTPUT.rmsd_9_lib 2>> $OUTPUT.validator_log   # rmsd of fragments against validator pdb
 
   ### HOMOLOG REMOVAL ####
   if [ "$remove_homologs" = true ] ; then
@@ -293,12 +296,13 @@ if  [ "$disable_flex" = false ] ; then
     done
     mv $OUTPUT.rmsd_9_lib_nh $OUTPUT.rmsd_9_lib
   fi
-  $FLIB/bin/filterlib2 $OUTPUT $OUTPUT.rmsd_9_lib                 # Filter LIB_HHR so it does not contain more than 20 frags. per position.
-  cat $OUTPUT.lib_final > $OUTPUT.combined
+
+  $FLIB/bin/filterlib2 $OUTPUT $OUTPUT.rmsd_9_lib                # Filter LIB_HHR so it does not contain more than 20 frags. per position.
+  cat $OUTPUT.lib_flex"$FLEX"_final > $OUTPUT.combined
   awk '$6 == "O" {print }' $OUTPUT.lib20	   >> $OUTPUT.combined
   awk '$6 == "L" {print }' $OUTPUT.lib20     >> $OUTPUT.combined
 
-  sort -k 10,10n -k 13,13nr $OUTPUT.combined > $OUTPUT.lib                        # The resulting library is LIB
+  sort -k 10,10n -k 13,13nr $OUTPUT.combined > $OUTPUT.lib_flex"$FLEX"_seg$segment.$terminus                        # The resulting library is LIB
   echo "Done"
   echo "--------------------------------------"
 fi
@@ -309,8 +313,8 @@ fi
 # Parse FLIB library into SAINT2 compliant format.
 if [ "$parse_flib" = true ] ; then
   echo "Parsing Flib File:"
-  python $FLIB/scripts/process_flex_new.py $PDB < $OUTPUT.lib > $OUTPUT.vlib 2> $OUTPUT.log
-  mv $OUTPUT.vlib $OUTPUT.vlib_flex"$FLEX"_seg$segment.$terminus
+  python $FLIB/scripts/process_flex_new.py $PDB < $OUTPUT.lib_flex"$FLEX"_seg$segment.$terminus > $OUTPUT.vlib 2> $OUTPUT.log
+  mv $OUTPUT.lib_flex"$flex"_seg$segment.$terminus $OUTPUT.vlib_flex"$FLEX"_seg$segment.$terminus
   echo "Done"
   echo "--------------------------------------"
 fi

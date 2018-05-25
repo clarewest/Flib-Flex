@@ -3,7 +3,7 @@
 #################################################################
 
 #### CFLAGS     	Flags to pass to C compiler.
-CFLAGS          	= -O2
+CFLAGS          	= -O3
 
 
 all:			Flib extract filterlib filterlib2 Flib_Enrich parse_hhr get_length LibValidator filter_flex2_lib2 filter_flex_lib2
