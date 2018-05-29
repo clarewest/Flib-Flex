@@ -118,6 +118,7 @@ int main(int argc,char* argv[])
 	int *Worst_rnd;				  /* Score of worst frag for each query position.		   */	
 	int m;			 			  /* The length of the Query's fasta sequence              */
 	int n;			  		      /* The length of the DB protein fasta sequence           */
+  int num_header_lines;
     int begin=0;
     int end=0;
     int offset=0;
@@ -309,6 +310,21 @@ int main(int argc,char* argv[])
 	strcpy(AUX,Query);
 	input_ss = fopen(strcat(AUX,".fasta.ss"),"r");
 	if (input_ss == NULL) {printf("Predicted Secondary Structure file not found: %s\n", AUX); return 0;}
+  //skip header
+  num_header_lines=0;
+  while(fgetc(input_ss) == '#')
+  {
+    for(c=getc(input_ss);c!='\n' && c!= EOF;c=getc(input_ss));
+    num_header_lines++;
+  }
+  fclose(input_ss);
+	strcpy(AUX,Query);
+  input_ss = fopen(strcat(AUX,".fasta.ss"),"r");
+  while(num_header_lines > 0) 
+  {
+    fgets(AUX, 600, input_ss);
+    num_header_lines--;
+  }
 
     if(TRUE_SS)
     {
@@ -341,12 +357,13 @@ int main(int argc,char* argv[])
 
 	/***** READ QUERY'S PREDICTED SECONDARY STRUCTURE SEQUENCE *****/
 	/* READ INPUT SECONDARY STRUCTURE SEQUENCE */
+
 	while(fscanf(input_ss,"%d",&i)!=EOF && i<= m  )
 		fscanf(input_ss,"%s %c %f %f %f",AUX,&Fasta_SS[i-1],&Fasta_Conf[i-1].coil,&Fasta_Conf[i-1].helix,&Fasta_Conf[i-1].beta);
 	if(i!=m) { printf("ERROR: Fasta sequence and pred. secondary structure have different lengths!\n"); return 0; }
 	Fasta_SS[m]='\0'; 
 	/***** END OF READ QUERY'S PREDICTED SECONDARY STRUCTURE SEQUENCE *****/
-
+  //      printf("%s\n",Fasta_SS);
     /***** IF SPECIFIED AT INPUT, READ QUERY'S TRUE SECONDARY STRUCTURE SEQUENCE *****/
     if(TRUE_SS)
     {   
@@ -374,33 +391,35 @@ int main(int argc,char* argv[])
         }
         Fasta_True_SS[c2]='\0';
 
-        for(c2=offset;fscanf(input_true_ss,"%d %s %c %s",&c1,&AUX,&Chain,&Res) != EOF;)
+        for(;fscanf(input_true_ss,"%d %s %c %s",&c1,&AUX,&Chain,&Res) != EOF;)
         {   
              if(AUX[0]!='!' && Chain == Query_Chain)
              {
+               /* Assign real SS only to resolved residues */
+                sscanf(AUX, "%d", &c2);
+                c2--;
                 fgetc(input_true_ss);
                 fgetc(input_true_ss);
                 Fasta_True_SS[c2]=fgetc(input_true_ss);    
                 if(Fasta_True_SS[c2]==' ')
                     Fasta_True_SS[c2]='C';
-                c2++;
              }
              for(c=fgetc(input_true_ss);c!='\n' && c!=EOF;c=fgetc(input_true_ss)); 
         }
         
-//        printf("%s\n",Fasta_True_SS);
+    //    printf("%s\n",Fasta_True_SS);
 
         /* Copy the  relevant section of the true SS across */
         if(!end) end = m;
         if(!begin) begin = 1;
 
         for(i=begin-1; i<end; i++)
-            if(Fasta_True_SS[i]!='-')
+            if(Fasta_True_SS[i] != '-')
                 Fasta_SS[i] = Fasta_True_SS[i];
         
-//        printf("%s\n",Fasta_SS);
+  //      printf("%s\n",Fasta_SS);
     }
-    
+
     /***** END OF READ QUERY'S TRUE SECONDARY STRUCTURE SEQUENCE *****/
 
 
