@@ -30,6 +30,7 @@ Optional arguments:\n
 \t-disable_flib\t\tdon't run a local version of Flib\n
 \t-noparsing\t\tdon't parse Flib libraries to SAINT2 format\n
 \t-true_ss\t\tspecify to use the native SS (according to DSSP)\n
+\t-generate_validator\t\tgenerate the validator PDB based on segment and terminus options
 \t-nohoms\t\tspecify to omit homologs from search\n\n
 \t-disable_flex\t\tdon't process lib3000\n\n
 \t-flex\t\tspecify to filter out fragments more than FLEX A from validator\n\n
@@ -49,6 +50,7 @@ flex=false              # special behaviour for flex region
 segment=false         # length for which homologues are allowed 
 terminus=false        # terminus of prediction
 enrich=false           # Disables FlibEnrich
+generate_validator=false # default to provide own validator
 
 # CONSUME COMMAND LINE ARGUMENTS
 found_positional=false
@@ -85,18 +87,9 @@ do
       -true_ss)
         true_ss=true
         ;;
-      -begin)
-        begin=$2
-        shift
+      -generate_validator)
+        generate_validator=true
         ;;
-      -end)
-      end=$2;
-      shift
-      ;;
-    -offset)
-      offset=$2;
-      shift
-      ;;
     -chain)
       CHAIN="$2";
       shift
@@ -195,25 +188,23 @@ else
   exit
 fi
 
+if [ "$generate_validator" = true ] ; then
+  echo "Generating validator:"
+  awk -v START=$begin -v STOP=$end '{if (($6>=START)&&($6<=STOP)) print $0}' $VALIDATORPDB.pdb > validator_$OUTPUT.pdb
+fi
+
 echo "Using $VALIDATORPDB as validation from $begin to $end"
+
+$DSSP -i $VALIDATORPDB > validator_$OUTPUT.dssp
+$FLIB/scripts/Get_Torsion_Angle.py validator_$OUTPUT $CHAIN
+
 ##### FLIB #####
 echo "Generating FLIB File:"
 if [ "$generate_flib" = true ] ; then
-  if [[ -z $begin ]] ; then
-    begin=1;
-  fi
-
-  if [[ -z $end ]] ; then
-    end=$(wc $OUTPUT.fasta.ss | awk '{print $1}');
-  fi
-
-  if [[ -z $offset ]] ; then
-    offset=0;
-  fi
 
   if [ "$true_ss" = true ] ; then
     echo "Using real secondary structure from $begin to $end"
-    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon --true_ss -b $begin -e $end -O $offset -N $CHAIN 2> $OUTPUT.log > $OUTPUT.lib3000
+    $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon --true_ss -N $CHAIN 2> $OUTPUT.log > $OUTPUT.lib3000
   else
     $FLIB/bin/Flib -i $OUTPUT -C $OUTPUT.vcon 2> $OUTPUT.log > $OUTPUT.lib3000
   fi
@@ -226,11 +217,11 @@ fi
 
 cp $OUTPUT.lib3000 $OUTPUT.lib3000_ori
 
+
 if  [ "$disable_flex" = false ] ; then
 
   ### Validate fragments ###
   echo "Validating fragments:"
-  awk -v START=$begin -v STOP=$end '{if (($6>=START)&&($6<=STOP)) print $0}' $VALIDATORPDB.pdb > validator_$OUTPUT.pdb
   cp $OUTPUT.fasta.txt validator_$OUTPUT.fasta.txt
   $FLIB/bin/LibValidator validator_$OUTPUT $OUTPUT.lib3000 $CHAIN > $OUTPUT.lib3000_rmsd 2> $OUTPUT.validator_log   # rmsd of fragments against validator pdb
   cp $OUTPUT.lib3000_rmsd $OUTPUT.lib3000
@@ -261,13 +252,10 @@ if  [ "$disable_flex" = false ] ; then
   mv $OUTPUT.lib20 $OUTPUT.lib20_flex"$FLEX"_ori
   mv $OUTPUT.lib500 $OUTPUT.lib500_flex"$FLEX"_ori
 
-
-
-  if [ "$enrich" = true ]; then  
     ### Fragment Library Enrichment ###
     $FLIB/bin/Flib_Enrich $OUTPUT.lib500_ori $PDB 0.5 0 > $OUTPUT.clib 2> $OUTPUT.error # This will enrich LIB20 with fragments from LIB500: CLIB
     cat $OUTPUT.lib20_ori >> $OUTPUT.lib_tmp2                                     # Merges LIB20 and CLIB
-    cat $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
+    awk -v start=$begin -v stop=$end '{if (($10+$4) < start) || ( $10 >=stop)) print $0}' $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
     sort -k 10,10n $OUTPUT.lib_tmp2 > $OUTPUT.lib_final                       # Sorts LIB20+CLIB : LIB_FINAL
     rm $OUTPUT.lib_tmp2     
   else
@@ -290,7 +278,7 @@ if  [ "$disable_flex" = false ] ; then
     for HOMOLOG in $(cat $OUTPUT.homol)
     do
       #              awk -v homolog=$HOMOLOG -v  '{if (($1!=homolog)||($14>-1.0)) print $0}' "$OUTPUT".lib3000_nh > "$OUTPUT".tmp
-      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || (10 >= stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
+      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || ($10 >= stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       #	       	        sed -e "/$HOMOLOG/d" "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       mv $OUTPUT.tmp $OUTPUT.rmsd_9_lib_nh
     done

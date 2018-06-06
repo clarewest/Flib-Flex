@@ -49,7 +49,6 @@ remove_homologs=false		# removing homologs from frag. libraries.
 flex=false              # special behaviour for flex region
 segment=false         # length for which homologues are allowed 
 terminus=false        # terminus of prediction
-enrich=false           # Disables FlibEnrich
 generate_validator=false # default to provide own validator
 
 # CONSUME COMMAND LINE ARGUMENTS
@@ -252,19 +251,15 @@ if  [ "$disable_flex" = false ] ; then
   mv $OUTPUT.lib20 $OUTPUT.lib20_flex"$FLEX"_ori
   mv $OUTPUT.lib500 $OUTPUT.lib500_flex"$FLEX"_ori
 
-
-
-  if [ "$enrich" = true ]; then  
     ### Fragment Library Enrichment ###
     $FLIB/bin/Flib_Enrich $OUTPUT.lib500_ori $PDB 0.5 0 > $OUTPUT.clib 2> $OUTPUT.error # This will enrich LIB20 with fragments from LIB500: CLIB
     cat $OUTPUT.lib20_ori >> $OUTPUT.lib_tmp2                                     # Merges LIB20 and CLIB
-    cat $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
+    awk -v start=$begin -v stop=$end '{if (($10+$4) < start) || ( $10 >=stop)) print $0}' $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
     sort -k 10,10n $OUTPUT.lib_tmp2 > $OUTPUT.lib_final                       # Sorts LIB20+CLIB : LIB_FINAL
     rm $OUTPUT.lib_tmp2     
   else
     ### could add ~6.5 fragments without RMSD here ###
     cp $OUTPUT.lib20_flex"$FLEX"_ori $OUTPUT.lib_flex"$FLEX"_final 
-  fi
 
   ### Parsing fragments from Threading hits: ###
   python $FLIB/scripts/parse_hhr.py $OUTPUT > $OUTPUT.lib_hhr 2> $OUTPUT.log    # Creates lib from threading hits: LIB_HHR
@@ -281,7 +276,7 @@ if  [ "$disable_flex" = false ] ; then
     for HOMOLOG in $(cat $OUTPUT.homol)
     do
       #              awk -v homolog=$HOMOLOG -v  '{if (($1!=homolog)||($14>-1.0)) print $0}' "$OUTPUT".lib3000_nh > "$OUTPUT".tmp
-      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || (10 >= stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
+      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || ($10 >= stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       #	       	        sed -e "/$HOMOLOG/d" "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       mv $OUTPUT.tmp $OUTPUT.rmsd_9_lib_nh
     done
