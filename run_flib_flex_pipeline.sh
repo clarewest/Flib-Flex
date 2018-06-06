@@ -13,6 +13,7 @@ export BLASTDB=/data/icarus/west/Databases/
 export BLAST_PDB=/data/icarus/west/Databases/pdbaa
 export FLIB=/data/icarus/west/Flib-Flex/
 export PDB=/data/icarus/west/PDB/
+export DSSP=/data/icarus/not-backed-up/west/QualityAssessment/bin/dssp-2.0.4-linux-amd64
 
 # ==========================================================================
 # DO NOT CHANGE ANYTHING BELOW HERE
@@ -107,6 +108,7 @@ do
       ;;
     -validator_pdb)
       VALIDATORPDB=$2
+      VALIDATOR=validator_$VALIDATORPDB
       shift
       ;;
     -*|--*)
@@ -192,10 +194,10 @@ if [ "$generate_validator" = true ] ; then
   awk -v START=$begin -v STOP=$end '{if (($6>=START)&&($6<=STOP)) print $0}' $VALIDATORPDB.pdb > validator_$OUTPUT.pdb
 fi
 
-echo "Using $VALIDATORPDB as validation from $begin to $end"
+echo "Using $VALIDATORPDB as validation from $begin to $end: $VALIDATOR.pdb"
 
-$DSSP -i $VALIDATORPDB > validator_$OUTPUT.dssp
-$FLIB/scripts/Get_Torsion_Angle.py validator_$OUTPUT $CHAIN
+$DSSP -i $VALIDATOR.pdb > $VALIDATOR.dssp 2> $VALIDATOR.log
+$FLIB/scripts/Get_Torsion_Angle.py $VALIDATOR $CHAIN 2>> $VALIDATOR.log
 
 ##### FLIB #####
 echo "Generating FLIB File:"
