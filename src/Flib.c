@@ -119,9 +119,6 @@ int main(int argc,char* argv[])
 	int m;			 			  /* The length of the Query's fasta sequence              */
 	int n;			  		      /* The length of the DB protein fasta sequence           */
   int num_header_lines;
-    int begin=0;
-    int end=0;
-    int offset=0;
 	float Phi[MAXLEN], Psi[MAXLEN];
 	char AUX[600],SS[2],Res[2];	  /* Multi-purpose Auxiliary Strings 		               */
 	char c;						  /* Auxiliary Char 						               */
@@ -163,9 +160,6 @@ int main(int argc,char* argv[])
       {
           {"coevo_only",   no_argument, &COEVO_ONLY, 1},
           {"true_ss",      no_argument, &TRUE_SS, 1},
-          {"begin",        required_argument,       0, 'b'},
-          {"end",          required_argument,       0, 'e'},
-          {"offset",       required_argument,       0, 'O'},
           {"min_length",   required_argument,       0, 'l'},
           {"max_length",   required_argument,       0, 'L'},
           {"max_frags",    required_argument,       0, 'M'},
@@ -192,18 +186,6 @@ int main(int argc,char* argv[])
          case 0:
               if (long_options[option_index].flag != 0)
                 break;
-
-        case 'b':
-            begin = atoi(optarg);
-            break;
-
-        case 'e':
-            end = atoi(optarg);
-            break;
-
-        case 'O':
-            offset = atoi(optarg);
-            break;
 
         case 'l':
           min_length = atoi(optarg);
@@ -246,9 +228,6 @@ int main(int argc,char* argv[])
             printf("\t-N, --chain char [A] --- If validating fragments, the protein chain of your target. \n");
             printf("\t--print-dist --- If using co-evolution fragments, output the distance between the residues predicted to be in contact.\n");
             printf("\t--true_ss    --- Uses the true secondary structure, as output by DSSP.\n");
-            printf("\t-b,  --begin [0]      --- TRUE_SS only. The beginning position to use the true SS.\n");
-            printf("\t-e,  --end   [target length]  --- TRUE_SS only. The ending position to use the true SS.\n");
-            printf("\t-O,  --offset [0]     --- TRUE_SS only. The number of residues missing at the beginning of the target. \n");
             printf("\t--coevo_only --- Only output fragments that satisfy predicted contacts \n"); 
             printf("\n\nDESCRIPTION:\n\n\tFlib Co-evo v1.0\n\n");
             break;
@@ -274,17 +253,6 @@ int main(int argc,char* argv[])
     {
         fprintf(stderr,"[WARNING] No chain provided for true secondary structure. Using chain A as default. \n\t  Please, make sure that this is correct.\n");
         Query_Chain='A';
-    }
-
-    if(!TRUE_SS && (begin || end) )
-    {
-        fprintf(stderr,"[WARNING] Begin and/or end of true secondary structure have been set, but TRUE_SS mode is off.\nBegin and/or end arguments will be ignored.\n");
-    }
-
-
-    if(TRUE_SS && !begin && !end )
-    {
-        fprintf(stderr,"[WARNING] TRUE_SS mode is on, but begin and/or end arguments not set.\n");
     }
 
     if( !VALIDATE && Query_Chain && !TRUE_SS )
@@ -330,8 +298,8 @@ int main(int argc,char* argv[])
 
     if(TRUE_SS)
     {
-        strcpy(AUX,Query);
-        input_true_ss = fopen(strcat(AUX,".dssp"),"r");
+        sprintf(AUX, "validator_%s.dssp", Query);
+        input_true_ss = fopen(AUX,"r");
         if (input_true_ss == NULL) {printf("True Secondary Structure file not found: %s\n", AUX); return 0;}
     }
 
@@ -419,10 +387,7 @@ int main(int argc,char* argv[])
     //    printf("%s\n",Fasta_True_SS);
 
         /* Copy the  relevant section of the true SS across */
-        if(!end) end = m;
-        if(!begin) begin = 1;
-
-        for(i=begin-1; i<end; i++)
+        for(i=0; i<m; i++)
             if(Fasta_True_SS[i] != '-')
                 Fasta_SS[i] = Fasta_True_SS[i];
         
@@ -466,20 +431,17 @@ int main(int argc,char* argv[])
                 c2--;
                 True_Angles[c2][0]=tPhi;
                 True_Angles[c2][1]=tPsi;
-                printf("%d %f %f\n", c2, tPhi, tPsi);
+            //    printf("%d %f %f\n", c2, tPhi, tPsi);
              }
              for(c=fgetc(input_true_ss);c!='\n' && c!=EOF;c=fgetc(input_true_ss)); 
         }
         
    /* Copy relevant section of the true torsion angles across */
-        if(!end) end = m;
-        if(!begin) begin = 1;
-
-        for(i=begin-1; i<end; i++){
+        for(i=0; i<m; i++){
           for(j=0; j<2; j++)
             if(True_Angles[i][j] != -999)
                 Angles[i][j] = True_Angles[i][j];
-          printf("%d %f %f\n", i, Angles[i][0], Angles[i][1]);
+        //  printf("%d %f %f\n", i, Angles[i][0], Angles[i][1]);
           }
         }
     }
