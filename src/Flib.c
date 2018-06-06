@@ -140,13 +140,15 @@ int main(int argc,char* argv[])
 	float rmsd,aux;
 	float probability;
 	float Angles[MAXLEN][4];
+	float True_Angles[MAXLEN][4];
+  float tPhi,tPsi;
 	double resolution;			  /* The resolution of the crystal structure on the DB.	   */	
 	double new_score,dist1,dist2;			  /* The predicted torsion angle score					   */	
     int min_length = 6;
     int max_length = 14;
 	CONF Fasta_Conf[MAXLEN];      /* The confidence in the predicted secondary structure   */
 	fragment *new_frag;
-	FILE *input_fasta,*input_ss,*input_true_ss,*input_pdb,*input_phipsi,*blossum_file,*logods,*input_contact_file;
+	FILE *input_fasta,*input_ss,*input_true_ss,*input_pdb,*input_phipsi,*input_true_phipsi,*blossum_file,*logods,*input_contact_file;
     int con1, con2, num_con, ct, c1, c2,flag,found_cb;
     double XORT[MAX_FIT_COORDS],YORT[MAX_FIT_COORDS],ZORT[MAX_FIT_COORDS];
     int Contacts[MAXLEN][2];
@@ -282,7 +284,7 @@ int main(int argc,char* argv[])
 
     if(TRUE_SS && !begin && !end )
     {
-        fprintf(stderr,"[WARNING] TRUE_SS mode is on, but begin and/or end arguments not set.");
+        fprintf(stderr,"[WARNING] TRUE_SS mode is on, but begin and/or end arguments not set.\n");
     }
 
     if( !VALIDATE && Query_Chain && !TRUE_SS )
@@ -340,6 +342,13 @@ int main(int argc,char* argv[])
 	strcpy(AUX,Query);
     	input_phipsi = fopen(strcat(AUX,".spd3"),"r");
 	if (input_phipsi == NULL) {printf("SPIDER2 input file (predicted torsion angles) not found!\n"); return 0;}
+
+  if(TRUE_SS)
+  {
+    sprintf(AUX, "validator_%s.angles", Query);
+    input_true_phipsi = fopen(AUX,"r");
+    if (input_true_phipsi == NULL) {printf("Validator angles file not found!\n"); return 0;}
+  }
 
 	sprintf(PATH,"%s/data/blossum62.txt",getenv("FLIB"));
 	blossum_file = fopen(PATH,"r");
@@ -427,14 +436,55 @@ int main(int argc,char* argv[])
 	/* Remove Header from SPIDER2 output file */
 	for(c=fgetc(input_phipsi);c!='\n';c=fgetc(input_phipsi));
 
-	for(i=0;fscanf(input_phipsi,"%d %s %s %f %f %f",&k,Res,SS,&aux,&Angles[i][0],&Angles[i][1])!=EOF;i++)
+	for(i=0;fscanf(input_phipsi,"%d %s %s %f %f %f",&k,Res,SS,&aux,&Angles[i][0],&Angles[i][1])!=EOF;i++){
 		for(c=fgetc(input_phipsi);c!='\n';c=fgetc(input_phipsi));
+  }
 
 
         if(i!=m) { printf("ERROR: Fasta sequence and pred. torsion angles have different lengths!\n"); return 0; }
-
-	/***** END OF READ QUERY'S PREDICTED TORSION ANGLES *****/
 	
+	
+    if(TRUE_SS)
+    {   
+  //      printf("%s\n",Fasta_SS);
+        while(1)
+        {
+        /* Start reading true torsion angles */
+	      for(c=fgetc(input_true_phipsi);c!='\n';c=fgetc(input_true_phipsi));
+        for(c2=0; c2<m; c2++)
+        {
+          for(j=0; j<2; j++)
+            True_Angles[c2][j]=-999;
+        }
+        //Fasta_True_SS[c2]='\0';
+
+        for(;fscanf(input_true_phipsi,"%d %c %f %f",&c2,Res,&tPhi,&tPsi) != EOF;)
+        {   
+            // if(AUX[0]!='!')
+             {
+               /* Assign real TA only to resolved residues */
+                c2--;
+                True_Angles[c2][0]=tPhi;
+                True_Angles[c2][1]=tPsi;
+                printf("%d %f %f\n", c2, tPhi, tPsi);
+             }
+             for(c=fgetc(input_true_ss);c!='\n' && c!=EOF;c=fgetc(input_true_ss)); 
+        }
+        
+   /* Copy relevant section of the true torsion angles across */
+        if(!end) end = m;
+        if(!begin) begin = 1;
+
+        for(i=begin-1; i<end; i++){
+          for(j=0; j<2; j++)
+            if(True_Angles[i][j] != -999)
+                Angles[i][j] = True_Angles[i][j];
+          printf("%d %f %f\n", i, Angles[i][0], Angles[i][1]);
+          }
+        }
+    }
+        /***** END OF READ QUERY'S PREDICTED TORSION ANGLES *****/
+
 	/***** READ BLOSSUM MATRIX FOR THE ALIGNMENT *****/
 	for(i=0;i<24;i++)
 		for(j=0;j<24;j++)
