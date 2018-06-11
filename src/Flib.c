@@ -75,22 +75,11 @@ int find(char A,char *Dict)
 /* SS Alignment scoring function */
 int score_ss(char A, char B) 
 {
-    if(!TRUE_SS)
-    {
-    	if( A=='C' )
-	    	A=' ';
-    	if( B=='T' || B=='S' )
-	    	B=' ';
-
-    	if(B=='I' && A=='H')
-	    	return 1;
-    	if(B=='G' && A=='H')
-	    	return 1;
-    	if(B=='B' && A==' ')
-	    	return 1;
-    	if(B=='B' && A=='E')
-	    	return 1;
-    }
+  if( A=='L' )
+    A=' ';
+//  printf("A: %c B: %c\n", A,B);
+//  printf("Match: %d, Mismatch: %d\n", MATCH, MISMATCH);
+//  printf("Score: %d\n", score(A,B));
 	return score(A,B);
 }
 
@@ -290,15 +279,17 @@ int main(int argc,char* argv[])
   fclose(input_ss);
 	strcpy(AUX,Query);
   input_ss = fopen(strcat(AUX,".fasta.ss"),"r");
+
   while(num_header_lines > 0) 
   {
     fgets(AUX, 600, input_ss);
     num_header_lines--;
   }
-
+    
     if(TRUE_SS)
     {
         sprintf(AUX, "validator_%s.dssp", Query);
+  //      printf("Using true SS file: %s\n", AUX);
         input_true_ss = fopen(AUX,"r");
         if (input_true_ss == NULL) {printf("True Secondary Structure file not found: %s\n", AUX); return 0;}
     }
@@ -411,39 +402,32 @@ int main(int argc,char* argv[])
 	
     if(TRUE_SS)
     {   
-  //      printf("%s\n",Fasta_SS);
-        while(1)
-        {
         /* Start reading true torsion angles */
+        // Remove header from angles file
 	      for(c=fgetc(input_true_phipsi);c!='\n';c=fgetc(input_true_phipsi));
         for(c2=0; c2<m; c2++)
         {
           for(j=0; j<2; j++)
             True_Angles[c2][j]=-999;
         }
-        //Fasta_True_SS[c2]='\0';
 
         for(;fscanf(input_true_phipsi,"%d %c %f %f",&c2,Res,&tPhi,&tPsi) != EOF;)
         {   
-            // if(AUX[0]!='!')
-             {
                /* Assign real TA only to resolved residues */
                 c2--;
                 True_Angles[c2][0]=tPhi;
                 True_Angles[c2][1]=tPsi;
-            //    printf("%d %f %f\n", c2, tPhi, tPsi);
-             }
-             for(c=fgetc(input_true_ss);c!='\n' && c!=EOF;c=fgetc(input_true_ss)); 
+         //       printf("%d %f %f\n", c2, tPhi, tPsi);
+             for(c=fgetc(input_true_phipsi);c!='\n' && c!=EOF;c=fgetc(input_true_phipsi)); 
         }
         
-   /* Copy relevant section of the true torsion angles across */
+        /* Copy relevant section of the true torsion angles across */
         for(i=0; i<m; i++){
           for(j=0; j<2; j++)
             if(True_Angles[i][j] != -999)
                 Angles[i][j] = True_Angles[i][j];
-        //  printf("%d %f %f\n", i, Angles[i][0], Angles[i][1]);
+      //    printf("%d %f %f\n", i, Angles[i][0], Angles[i][1]);
           }
-        }
     }
         /***** END OF READ QUERY'S PREDICTED TORSION ANGLES *****/
 
@@ -474,6 +458,7 @@ int main(int argc,char* argv[])
     {
         for(i=0; fscanf(input_contact_file,"%d %d %lf",&Contacts[i][0],&Contacts[i][1],&aux)!=EOF; i++);
         num_con=i;
+
     }
 
 	/***** INITIALIZE THE FRAGMENT LIBRARY LINKED LIST *****/
@@ -557,6 +542,7 @@ int main(int argc,char* argv[])
 				else
 					ramach_score += LOGODS[DB_Ramach[start2]][index1][index2];
 		       		ss_score += score_ss(Fasta_SS[k],DB_SS[k2]);
+
 				/* Find predominant SS on the fragment */
 				switch(DB_SS[k2])
 				{
@@ -574,6 +560,8 @@ int main(int argc,char* argv[])
 			
 			if( ( ramach_score > 6 || ( helix < (length/2+1) && beta < (length/2+1) && ramach_score > 0 )) && (Total_rnd[start1] < MAX_FRAG || ramach_score > Worst_rnd[start1] ) )
 			{	
+
+
 				if( (!( helix < length/2+1 && beta < length/2 + 1 ))  && ss_score < 0 )
 					continue; 
 
@@ -586,7 +574,7 @@ int main(int argc,char* argv[])
 				if(ramach_score > 99) ramach_score = 99; /* This should not happen very often! */
 
 				new_frag->next = Frag_lib_rnd[start1][ramach_score];
-
+         
 				sprintf(new_frag->line,"%s\t%c\t%3d\t%3d\t",Header,Chain,start2,start2+length-1);
 
 				for (k=0; k < length ; k++)
