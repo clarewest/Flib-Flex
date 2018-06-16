@@ -30,10 +30,10 @@ LibValidator.o:		slink.h LibValidator.c
 			$(CC) $(CFLAGS) -c LibValidator.c
 
 filter_flex2_lib2: filter_flex2_lib2.c
-			$(CC) $(CFLAGS) -c filter_flex2_lib2.c -o filter_flex2_lib2
+			$(CC) filter_flex2_lib2.c -o filter_flex2_lib2
 
 filter_flex_lib2: filter_flex_lib2.c
-			$(CC) $(CFLAGS) -c filter_flex_lib2.c -o filter_flex_lib2
+			$(CC) $(CFLAGS) filter_flex_lib2.c -o filter_flex_lib2
 
 filterlib:		filter_lib.c
 			$(CC) $(CFLAGS) filter_lib.c -o filterlib

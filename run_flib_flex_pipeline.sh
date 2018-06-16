@@ -48,7 +48,7 @@ disable_flex=false
 parse_flib=true	        	# parsing Flib libraries to SAINT2 format.
 remove_homologs=false		# removing homologs from frag. libraries.
 flex=false              # special behaviour for flex region
-segment=false         # length for which homologues are allowed 
+segment=false         # length for which homologues are allowed IE TEMPLEN
 terminus=false        # terminus of prediction
 generate_validator=false # default to provide own validator
 
@@ -176,13 +176,13 @@ if [ "$remove_homologs" = true ] ; then
   echo "--------------------------------------"
 fi
 
-### Setting start and end residues of validator ###
+### Setting start and end residues of validator (inclusive)###
 LENGTH=$(tail -n1 $OUTPUT.fasta.txt | tr -d '\n' | wc -c)
 if [ $terminus = "C" ]; then
   begin=1
   end=$segment
 elif [ $terminus = "N" ]; then
-  begin=$((LENGTH-segment))
+  begin=$((LENGTH-segment+1))
   end=$LENGTH
 else
   echo "Not a valid terminus"
@@ -254,14 +254,13 @@ if  [ "$disable_flex" = false ] ; then
   mv $OUTPUT.lib500 $OUTPUT.lib500_flex"$FLEX"_ori
 
     ### Fragment Library Enrichment ###
-    $FLIB/bin/Flib_Enrich $OUTPUT.lib500_ori $PDB 0.5 0 > $OUTPUT.clib 2> $OUTPUT.error # This will enrich LIB20 with fragments from LIB500: CLIB
-    cat $OUTPUT.lib20_ori >> $OUTPUT.lib_tmp2                                     # Merges LIB20 and CLIB
-    awk -v start=$begin -v stop=$end '{if (($10+$4) < start) || ( $10 >=stop)) print $0}' $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
-    sort -k 10,10n $OUTPUT.lib_tmp2 > $OUTPUT.lib_final                       # Sorts LIB20+CLIB : LIB_FINAL
+    $FLIB/bin/Flib_Enrich $OUTPUT.lib500_flex"$FLEX"_ori $PDB 0.5 0 > $OUTPUT.clib 2> $OUTPUT.error # This will enrich LIB20 with fragments from LIB500: CLIB
+    cat $OUTPUT.lib20_flex"$FLEX"_ori > $OUTPUT.lib_tmp2                                     # Merges LIB20 and CLIB
+    awk -v start=$begin -v stop=$end '{if ((($10+$4) < start) || ( $10 > stop)) print $0}' $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
+    sort -k 10,10n $OUTPUT.lib_tmp2 > $OUTPUT.lib_flex"$FLEX"_final                       # Sorts LIB20+CLIB : LIB_FINAL
     rm $OUTPUT.lib_tmp2     
-  else
-    ### could add ~6.5 fragments without RMSD here ###
-    cp $OUTPUT.lib20_flex"$FLEX"_ori $OUTPUT.lib_flex"$FLEX"_final 
+  #else
+  #  cp $OUTPUT.lib20_flex"$FLEX"_ori $OUTPUT.lib_flex"$FLEX"_final 
 
   ### Parsing fragments from Threading hits: ###
   python $FLIB/scripts/parse_hhr.py $OUTPUT > $OUTPUT.lib_hhr 2> $OUTPUT.log    # Creates lib from threading hits: LIB_HHR
@@ -278,7 +277,7 @@ if  [ "$disable_flex" = false ] ; then
     for HOMOLOG in $(cat $OUTPUT.homol)
     do
       #              awk -v homolog=$HOMOLOG -v  '{if (($1!=homolog)||($14>-1.0)) print $0}' "$OUTPUT".lib3000_nh > "$OUTPUT".tmp
-      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || ($10 >= stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
+      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || ($10 > stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       #	       	        sed -e "/$HOMOLOG/d" "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       mv $OUTPUT.tmp $OUTPUT.rmsd_9_lib_nh
     done
