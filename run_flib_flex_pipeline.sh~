@@ -176,7 +176,7 @@ if [ "$remove_homologs" = true ] ; then
   echo "--------------------------------------"
 fi
 
-### Setting start and end residues of validator ###
+### Setting start and end residues of validator (inclusive)###
 LENGTH=$(tail -n1 $OUTPUT.fasta.txt | tr -d '\n' | wc -c)
 if [ $terminus = "C" ]; then
   begin=1
@@ -256,7 +256,7 @@ if  [ "$disable_flex" = false ] ; then
     ### Fragment Library Enrichment ###
     $FLIB/bin/Flib_Enrich $OUTPUT.lib500_flex"$FLEX"_ori $PDB 0.5 0 > $OUTPUT.clib 2> $OUTPUT.error # This will enrich LIB20 with fragments from LIB500: CLIB
     cat $OUTPUT.lib20_flex"$FLEX"_ori > $OUTPUT.lib_tmp2                                     # Merges LIB20 and CLIB
-    awk -v start=$begin -v stop=$end '{if ((($10+$4) < start) || ( $10 >=stop)) print $0}' $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
+    awk -v start=$begin -v stop=$end '{if ((($10) <= (start-2)) || ( ($10+$4-1) >= (stop-1+1) )) print $0}' $OUTPUT.clib >> $OUTPUT.lib_tmp2                                      # ...
     sort -k 10,10n $OUTPUT.lib_tmp2 > $OUTPUT.lib_flex"$FLEX"_final                       # Sorts LIB20+CLIB : LIB_FINAL
     rm $OUTPUT.lib_tmp2     
   #else
@@ -277,7 +277,8 @@ if  [ "$disable_flex" = false ] ; then
     for HOMOLOG in $(cat $OUTPUT.homol)
     do
       #              awk -v homolog=$HOMOLOG -v  '{if (($1!=homolog)||($14>-1.0)) print $0}' "$OUTPUT".lib3000_nh > "$OUTPUT".tmp
-      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10+$4) < start ) || ($10 >= stop))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
+      # Fragment library is zero-indexed, start/stop are 1-indexed
+      awk -v homolog=$HOMOLOG -v start=$begin -v stop=$end '{if (($1!=homolog)|| ( (($10) >= (start-1) ) || (($10+$4-1) <= (stop-1)))) print $0}' "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       #	       	        sed -e "/$HOMOLOG/d" "$OUTPUT".rmsd_9_lib_nh > "$OUTPUT".tmp
       mv $OUTPUT.tmp $OUTPUT.rmsd_9_lib_nh
     done
@@ -289,7 +290,7 @@ if  [ "$disable_flex" = false ] ; then
   awk '$6 == "O" {print }' $OUTPUT.lib20	   >> $OUTPUT.combined
   awk '$6 == "L" {print }' $OUTPUT.lib20     >> $OUTPUT.combined
 
-  sort -k 10,10n -k 13,13nr $OUTPUT.combined > $OUTPUT.lib_flex"$FLEX"_seg$segment.$terminus                        # The resulting library is LIB
+  sort -k 10,10n -k 13,13nr $OUTPUT.combined > $OUTPUT.$LIB                       # The resulting library is LIB
   echo "Done"
   echo "--------------------------------------"
 fi
