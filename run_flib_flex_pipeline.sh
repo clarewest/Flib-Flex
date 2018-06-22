@@ -14,6 +14,7 @@ export BLAST_PDB=/data/icarus/west/Databases/pdbaa
 export FLIB=/data/icarus/west/Flib-Flex/
 export PDB=/data/icarus/west/PDB/
 export DSSP=/data/icarus/not-backed-up/west/QualityAssessment/bin/dssp-2.0.4-linux-amd64
+export SCRIPTS=/homes/west/Project/Scripts/
 
 # ==========================================================================
 # DO NOT CHANGE ANYTHING BELOW HERE
@@ -191,7 +192,7 @@ fi
 
 if [ "$generate_validator" = true ] ; then
   echo "Generating validator:"
-  awk -v START=$begin -v STOP=$end '{if (($6>=START)&&($6<=STOP)) print $0}' $VALIDATORPDB.pdb > validator_$OUTPUT.pdb
+  $SCRIPTS/get_domain_from_pdb.py $OUTPUT.pdb $CHAIN $begin $end validator_$OUTPUT.pdb
 fi
 
 echo "Using $VALIDATORPDB as validation from $begin to $end: $VALIDATOR.pdb"
