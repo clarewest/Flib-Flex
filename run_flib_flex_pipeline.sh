@@ -109,7 +109,6 @@ do
       ;;
     -validator_pdb)
       VALIDATORPDB=$2
-      VALIDATOR=validator_$VALIDATORPDB
       shift
       ;;
     -*|--*)
@@ -192,9 +191,11 @@ fi
 
 if [ "$generate_validator" = true ] ; then
   echo "Generating validator:"
-  $SCRIPTS/get_domain_from_pdb.py $OUTPUT.pdb $CHAIN $begin $end validator_$OUTPUT.pdb
+  $SCRIPTS/get_domain_from_pdb.py $VALIDATORPDB.pdb $CHAIN $begin $end $VALIDATOR.pdb
 fi
 
+
+VALIDATOR=validator_$OUTPUT
 echo "Using $VALIDATORPDB as validation from $begin to $end: $VALIDATOR.pdb"
 
 $DSSP -i $VALIDATOR.pdb > $VALIDATOR.dssp 2> $VALIDATOR.log
