@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # SET UP THE PATHS FOR REQUIRED DEPENDENCIES:
-export PSIPRED=/data/icarus/oliveira/psipred/
-export SPIDER=/data/icarus/oliveira/SPIDER2/misc/
-export HHSUITE=/data/icarus/oliveira/hh-suite/bin/
-export HHBLITSDB=/data/icarus/oliveira/Databases/pdb70
-export BLAST=/data/icarus/oliveira/ncbi-blast-2.5.0+/bin/
-export BLASTDB=/data/icarus/oliveira/Databases/
-export BLAST_PDB=/data/icarus/oliveira/Databases/pdbaa
-export FLIB=/data/icarus/oliveira/Flib_Coevo/
-export PDB=/data/icarus/oliveira/PDB/
+export PSIPRED=/data/icarus/west/psipred/
+export SPIDER=/data/icarus/west/SPIDER2/misc/
+export HHSUITE=/data/icarus/west/hh-suite/bin/
+export HHBLITSDB=/data/icarus/west/Databases/pdb70
+export BLAST=/data/icarus/west/ncbi-blast-2.7.1+/bin/
+export BLASTDB=/data/icarus/west/Databases/
+export BLAST_PDB=/data/icarus/west/Databases/pdbaa
+export FLIB=/data/icarus/west/Flib-Coevo/
+export PDB=/data/icarus/west/PDB/
 
 # ==========================================================================
 # DO NOT CHANGE ANYTHING BELOW HERE

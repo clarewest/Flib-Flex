@@ -1,11 +1,6 @@
 ===========================================================
 Flib-Coevo: Enriching Fragment Libraries using Co-evolution
 ===========================================================
-===========================================================
-Flib-Flex: For prediction with a partially known structure
-===========================================================
-
-Clare E. West - May - 2018
 
 Flib-Coevo version:
 Saulo de Oliveira - September - 2017
