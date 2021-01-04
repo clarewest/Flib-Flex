@@ -15,17 +15,24 @@ of 20 fragments per position are included).
 FILE PREPARATION
 --------------------------------------
 
+```bash
 export FLIB=/data/icarus/west/Flib-Flex/
 export SCRIPTS=~/Project/Scripts/
+```
 
 Note that PDB files need to be cleaned up before use. This means indexed from 1, single chain (A),
 standard amino acids and with multiple occupancies removed. Some scripts that can help with this:
+
+```bash
 $SCRIPTS/rechain.py $TARGET.pdb
 for PDB in $(cat list.txt); do mv $PDB.pdb orig_$PDB.pdb; $SCRIPTS/pdb-tools/pdb_delocc.py orig_$PDB.pdb > $PDB.pdb; done
+```
 
 To generate the validator where a terminal end is missing:
 
+```bash
 bash $FLIB/scripts/generate_validator.sh TARGET VALIDATORID TERMINUS SEGMENT
+``` 
 
 Where segment is the length of the known region.
 
@@ -38,7 +45,9 @@ $TARGET.spd3          : Predicted torsion angles (the output of Spider3)
 
 To convert the DeepCNF output to a form readable by Flib, use the following script:
 
+```bash
 for TARGET in $(cat lisst.txt); do $FLIB/scripts/convert_ss8.sh $TARGET ; done
+```
 
 This will remove the header and summarise the 8 columns into 3 columns. The actual values are currently
 not used in Flib, only the category for each residue. 
